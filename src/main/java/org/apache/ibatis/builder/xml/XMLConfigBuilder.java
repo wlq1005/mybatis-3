@@ -91,31 +91,43 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   public Configuration parse() {
+    // 不能重复加载
     if (parsed) {
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
     parsed = true;
+    // 读取xml <configuration>节点下的配置
     parseConfiguration(parser.evalNode("/configuration"));
     return configuration;
   }
 
   private void parseConfiguration(XNode root) {
     try {
-      //issue #117 read properties first
+      // 优先加载properties节点信息
       propertiesElement(root.evalNode("properties"));
       Properties settings = settingsAsProperties(root.evalNode("settings"));
+      // 指定 VFS 的实现	自定义 VFS 的实现的类全限定名，以逗号分隔
       loadCustomVfs(settings);
+      // 指定 MyBatis 所用日志的具体实现，未指定时将自动查找
+      // 例:<setting name="logImpl" value="LOG4J"/>
       loadCustomLogImpl(settings);
+      // 加载类型别名信息
       typeAliasesElement(root.evalNode("typeAliases"));
+      // 加载插件信息
       pluginElement(root.evalNode("plugins"));
+      // 加载对象工厂 objectFactory,objectWrapperFactory,reflectorFactory
       objectFactoryElement(root.evalNode("objectFactory"));
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
       settingsElement(settings);
       // read it after objectFactory and objectWrapperFactory issue #631
+      // 加载环境配置
       environmentsElement(root.evalNode("environments"));
+      // 加载数据库厂商标识
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+      // 加载类型处理器
       typeHandlerElement(root.evalNode("typeHandlers"));
+      // 加载mapper映射器
       mapperElement(root.evalNode("mappers"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
@@ -127,7 +139,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       return new Properties();
     }
     Properties props = context.getChildrenAsProperties();
-    // Check that all settings are known to the configuration class
+    // 检查setting中配置的节点在Configuration是否存在
     MetaClass metaConfig = MetaClass.forClass(Configuration.class, localReflectorFactory);
     for (Object key : props.keySet()) {
       if (!metaConfig.hasSetter(String.valueOf(key))) {
@@ -218,9 +230,31 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 解析properties节点
+   * 例:
+   *     <properties resource="org/mybatis/example/config.properties">
+   *        <property name="username" value="dev_user"/>
+   *        <property name="password" value="F2Fa3!33TYyg"/>
+   *     </properties>
+   *     or
+   *     <properties url="http://127.0.0.1/config.properties">
+   *        <property name="username" value="dev_user"/>
+   *        <property name="password" value="F2Fa3!33TYyg"/>
+   *     </properties>
+   *     1.resource和url的方式只能存在一种
+   *     2.properties子节点属性名若和resource或url中定义的一致,则会被覆盖
+   *     3.SqlSessionFactoryBuilder中若传入了properties参数,则会覆盖之前设置的属性
+   *     优先级 properties参数形式 > resource/url形式 > properties子节点
+   *
+   * @param context
+   * @throws Exception
+   */
   private void propertiesElement(XNode context) throws Exception {
     if (context != null) {
+      // 获取properties子节点属性
       Properties defaults = context.getChildrenAsProperties();
+      // 获取resources或url中配置的属性
       String resource = context.getStringAttribute("resource");
       String url = context.getStringAttribute("url");
       if (resource != null && url != null) {
@@ -231,6 +265,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       } else if (url != null) {
         defaults.putAll(Resources.getUrlAsProperties(url));
       }
+      // 获取构建时传参进来的参数
       Properties vars = configuration.getVariables();
       if (vars != null) {
         defaults.putAll(vars);
