@@ -82,6 +82,7 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   private XMLConfigBuilder(XPathParser parser, String environment, Properties props) {
+    // new Configuration() 的 构造方法会将常用的对象别名及其对象put进typeAliases
     super(new Configuration());
     ErrorContext.instance().resource("SQL Mapper Configuration");
     this.configuration.setVariables(props);
@@ -121,11 +122,11 @@ public class XMLConfigBuilder extends BaseBuilder {
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
       settingsElement(settings);
       // read it after objectFactory and objectWrapperFactory issue #631
-      // 加载环境配置
+      // 加载环境配置,事务也在这边开启
       environmentsElement(root.evalNode("environments"));
       // 加载数据库厂商标识
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
-      // 加载类型处理器
+      // 加载类型处理器 javaType和jdbcType类型转换
       typeHandlerElement(root.evalNode("typeHandlers"));
       // 加载mapper映射器
       mapperElement(root.evalNode("mappers"));
@@ -307,12 +308,16 @@ public class XMLConfigBuilder extends BaseBuilder {
   private void environmentsElement(XNode context) throws Exception {
     if (context != null) {
       if (environment == null) {
+        // 获取environments节点上default属性
         environment = context.getStringAttribute("default");
       }
       for (XNode child : context.getChildren()) {
         String id = child.getStringAttribute("id");
+        // 找到id与default对应的environment配置
         if (isSpecifiedEnvironment(id)) {
+          // 获取事务
           TransactionFactory txFactory = transactionManagerElement(child.evalNode("transactionManager"));
+          // 获取数据源
           DataSourceFactory dsFactory = dataSourceElement(child.evalNode("dataSource"));
           DataSource dataSource = dsFactory.getDataSource();
           Environment.Builder environmentBuilder = new Environment.Builder(id)
@@ -392,6 +397,11 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 配置mybatis映射
+   * @param parent
+   * @throws Exception
+   */
   private void mapperElement(XNode parent) throws Exception {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
