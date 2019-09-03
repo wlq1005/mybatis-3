@@ -398,7 +398,25 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   /**
-   * 配置mybatis映射
+   * 配置Mapper文件映射，这样mybatis才能找到sql文件
+   * 四种方式：
+   * 1.接口所在包路径，对应的映射文件必须位于同一路径下并且名称相同
+   * <mappers>
+   *     <package name="com.wuliuqing.mybatis.mapper"/>
+   * </mappers>
+   * 2.相对路径
+   * <mappers>
+   *     <mapper resource="com/wuliuqing/mybatis/mapper/UserMapper.xml"/>
+   * </mappers>
+   * 3.绝对路径本地资源或网络资源
+   *<mappers>
+   *     <mapper url="file:///var/mappers/UserMapper.xml"/>
+   *     <mapper url="http://wwww.test.com/UserMapper.xml"/>
+   * </mappers>
+   * 4.接口类, 对应的映射文件必须位于同一路径下并且名称相同
+   *<mappers>
+   *   <mapper class="com.wuliuqing.mybatis.mapper.UserMapper"/>
+   * </mappers>
    * @param parent
    * @throws Exception
    */
@@ -407,6 +425,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       for (XNode child : parent.getChildren()) {
         if ("package".equals(child.getName())) {
           String mapperPackage = child.getStringAttribute("name");
+          // 加载包下所有mapper
           configuration.addMappers(mapperPackage);
         } else {
           String resource = child.getStringAttribute("resource");
