@@ -97,7 +97,9 @@ public class Reflector {
    */
   private void addGetMethods(Class<?> clazz) {
     Map<String, List<Method>> conflictingGetters = new HashMap<>();
+    // 获取指定类及其父类、接口的所有方法名称
     Method[] methods = getClassMethods(clazz);
+    // 将属性名与getter方法的关系添加到conflictingGetters中
     Arrays.stream(methods).filter(m -> m.getParameterTypes().length == 0 && PropertyNamer.isGetter(m.getName()))
       .forEach(m -> addMethodConflict(conflictingGetters, PropertyNamer.methodToProperty(m.getName()), m));
     resolveGetterConflicts(conflictingGetters);
@@ -237,19 +239,23 @@ public class Reflector {
   private void addFields(Class<?> clazz) {
     Field[] fields = clazz.getDeclaredFields();
     for (Field field : fields) {
+      // setMethods集合中不包含时添加到setMethods中
       if (!setMethods.containsKey(field.getName())) {
         // issue #379 - removed the check for final because JDK 1.5 allows
         // modification of final fields through reflection (JSR-133). (JGB)
         // pr #16 - final static can only be set by the classloader
         int modifiers = field.getModifiers();
+        // 过滤掉static和final
         if (!(Modifier.isFinal(modifiers) && Modifier.isStatic(modifiers))) {
           addSetField(field);
         }
       }
+      // getMethods集合中不包含是添加到getMethods中
       if (!getMethods.containsKey(field.getName())) {
         addGetField(field);
       }
     }
+    // 处理父类中的字段，再调一遍该方法
     if (clazz.getSuperclass() != null) {
       addFields(clazz.getSuperclass());
     }
