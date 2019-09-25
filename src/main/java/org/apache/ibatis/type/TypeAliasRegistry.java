@@ -109,6 +109,7 @@ public class TypeAliasRegistry {
         return null;
       }
       // issue #748
+      // 转为小写
       String key = string.toLowerCase(Locale.ENGLISH);
       Class<T> value;
       if (typeAliases.containsKey(key)) {
@@ -159,7 +160,7 @@ public class TypeAliasRegistry {
       throw new TypeException("The parameter alias cannot be null");
     }
     // issue #748
-    // 转化为英文小鞋
+    // 转化为英文小写
     String key = alias.toLowerCase(Locale.ENGLISH);
     // 判断别名是否存在
     if (typeAliases.containsKey(key) && typeAliases.get(key) != null && !typeAliases.get(key).equals(value)) {
@@ -180,6 +181,7 @@ public class TypeAliasRegistry {
    * @since 3.2.2
    */
   public Map<String, Class<?>> getTypeAliases() {
+    // 返回不可修改的别名集合
     return Collections.unmodifiableMap(typeAliases);
   }
 
