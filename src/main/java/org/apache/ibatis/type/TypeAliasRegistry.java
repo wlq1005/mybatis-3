@@ -37,6 +37,7 @@ import org.apache.ibatis.io.Resources;
  */
 public class TypeAliasRegistry {
 
+  // 保存所有的别名与对象之间的关系
   private final Map<String, Class<?>> typeAliases = new HashMap<>();
 
   public TypeAliasRegistry() {
@@ -122,16 +123,20 @@ public class TypeAliasRegistry {
   }
 
   public void registerAliases(String packageName) {
+    // 整个package增加别名
     registerAliases(packageName, Object.class);
   }
 
   public void registerAliases(String packageName, Class<?> superType) {
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<>();
+    // 判断目标对象名是否与superType相等，或者是superType的子类、子接口
     resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
+    // 获取满足上述条件的对象集合
     Set<Class<? extends Class<?>>> typeSet = resolverUtil.getClasses();
     for (Class<?> type : typeSet) {
       // Ignore inner classes and interfaces (including package-info.java)
       // Skip also inner classes. See issue #6
+      // 如果不是匿名内部类、接口、成员类则添加进别名映射
       if (!type.isAnonymousClass() && !type.isInterface() && !type.isMemberClass()) {
         registerAlias(type);
       }
@@ -141,6 +146,7 @@ public class TypeAliasRegistry {
   public void registerAlias(Class<?> type) {
     String alias = type.getSimpleName();
     Alias aliasAnnotation = type.getAnnotation(Alias.class);
+    // 如果这个类上有注解，别名就使用该注解的值
     if (aliasAnnotation != null) {
       alias = aliasAnnotation.value();
     }
@@ -148,11 +154,14 @@ public class TypeAliasRegistry {
   }
 
   public void registerAlias(String alias, Class<?> value) {
+    // 别名是空的话直接抛出异常
     if (alias == null) {
       throw new TypeException("The parameter alias cannot be null");
     }
     // issue #748
+    // 转化为英文小鞋
     String key = alias.toLowerCase(Locale.ENGLISH);
+    // 判断别名是否存在
     if (typeAliases.containsKey(key) && typeAliases.get(key) != null && !typeAliases.get(key).equals(value)) {
       throw new TypeException("The alias '" + alias + "' is already mapped to the value '" + typeAliases.get(key).getName() + "'.");
     }

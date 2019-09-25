@@ -217,6 +217,7 @@ public class ResolverUtil<T> {
     String path = getPackagePath(packageName);
 
     try {
+      // 获取package下所有类名
       List<String> children = VFS.getInstance().list(path);
       for (String child : children) {
         if (child.endsWith(".class")) {
