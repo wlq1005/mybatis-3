@@ -38,20 +38,30 @@ import org.apache.ibatis.io.Resources;
  */
 public class UnpooledDataSource implements DataSource {
 
+  // 加载driver的类加载器
   private ClassLoader driverClassLoader;
+  // 数据路连接相关配置
   private Properties driverProperties;
+  // 缓存所有已注册的数据库连接驱动
   private static Map<String, Driver> registeredDrivers = new ConcurrentHashMap<>();
 
+  // 数据库连接驱动名称
   private String driver;
+  // 数据库地址
   private String url;
+  // 数据库用户名
   private String username;
+  // 数据库密码
   private String password;
-
+  // 是否自动提交
   private Boolean autoCommit;
+  // 默认事务隔离级别
   private Integer defaultTransactionIsolationLevel;
+  // 默认网络超时时间
   private Integer defaultNetworkTimeout;
 
   static {
+    // 将DriverManager中注册的所有驱动都缓存到registeredDrivers中
     Enumeration<Driver> drivers = DriverManager.getDrivers();
     while (drivers.hasMoreElements()) {
       Driver driver = drivers.nextElement();
@@ -193,7 +203,7 @@ public class UnpooledDataSource implements DataSource {
 
   /**
    * Sets the default network timeout value to wait for the database operation to complete. See {@link Connection#setNetworkTimeout(java.util.concurrent.Executor, int)}
-   * 
+   *
    * @param defaultNetworkTimeout
    *          The time in milliseconds to wait for the database operation to complete.
    * @since 3.5.2
@@ -224,6 +234,7 @@ public class UnpooledDataSource implements DataSource {
   }
 
   private synchronized void initializeDriver() throws SQLException {
+    // 加载指定的驱动,并且添加到registeredDrivers中
     if (!registeredDrivers.containsKey(driver)) {
       Class<?> driverType;
       try {
@@ -244,12 +255,15 @@ public class UnpooledDataSource implements DataSource {
   }
 
   private void configureConnection(Connection conn) throws SQLException {
+    // 设置超时时间
     if (defaultNetworkTimeout != null) {
       conn.setNetworkTimeout(Executors.newSingleThreadExecutor(), defaultNetworkTimeout);
     }
+    // 设置是否自动提交
     if (autoCommit != null && autoCommit != conn.getAutoCommit()) {
       conn.setAutoCommit(autoCommit);
     }
+    // 设置事务隔离级别
     if (defaultTransactionIsolationLevel != null) {
       conn.setTransactionIsolation(defaultTransactionIsolationLevel);
     }
