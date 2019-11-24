@@ -52,9 +52,13 @@ import org.apache.ibatis.type.JdbcType;
  */
 public class XMLConfigBuilder extends BaseBuilder {
 
+  // 标识是否解析过mybatis-config.xml文件
   private boolean parsed;
+  // 用于解析mybatis-config.xml文件的XPathParser对象
   private final XPathParser parser;
+  // <environment>配置属性，默认读取default
   private String environment;
+  // 创建和缓存Reflector对象
   private final ReflectorFactory localReflectorFactory = new DefaultReflectorFactory();
 
   public XMLConfigBuilder(Reader reader) {
@@ -104,31 +108,34 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void parseConfiguration(XNode root) {
     try {
-      // 优先加载properties节点信息
+      // 解析<properties>节点
       propertiesElement(root.evalNode("properties"));
+      // 解析<settings>节点
       Properties settings = settingsAsProperties(root.evalNode("settings"));
       // 指定 VFS 的实现	自定义 VFS 的实现的类全限定名，以逗号分隔
       loadCustomVfs(settings);
       // 指定 MyBatis 所用日志的具体实现，未指定时将自动查找
       // 例:<setting name="logImpl" value="LOG4J"/>
       loadCustomLogImpl(settings);
-      // 加载类型别名信息
+      // 解析<typeAliases>节点，类型别名信息
       typeAliasesElement(root.evalNode("typeAliases"));
-      // 加载插件信息
+      // 解析<plugins>节点，插件信息
       pluginElement(root.evalNode("plugins"));
-      // 加载对象工厂 objectFactory,objectWrapperFactory,reflectorFactory
+      // 解析<objectFactory>节点，对象工厂
       objectFactoryElement(root.evalNode("objectFactory"));
+      // 解析<objectWrapperFactory>节点
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
+      // 解析<reflectorFactory>节点
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
       settingsElement(settings);
       // read it after objectFactory and objectWrapperFactory issue #631
-      // 加载环境配置,事务也在这边开启
+      // 解析<environments>节点，加载环境配置,事务也在这边开启
       environmentsElement(root.evalNode("environments"));
-      // 加载数据库厂商标识
+      // 解析<databaseIdProvider>节点，数据库厂商标识
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
-      // 加载类型处理器 javaType和jdbcType类型转换
+      // 解析<typeHandlers>节点，类型处理器 javaType和jdbcType类型转换
       typeHandlerElement(root.evalNode("typeHandlers"));
-      // 加载mapper映射器
+      // 解析<mappers>节点，mapper映射器
       mapperElement(root.evalNode("mappers"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
@@ -140,7 +147,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       return new Properties();
     }
     Properties props = context.getChildrenAsProperties();
-    // 检查setting中配置的节点在Configuration是否存在
+    // 检查Configuration中是存在与指定key相应的setter方法
     MetaClass metaConfig = MetaClass.forClass(Configuration.class, localReflectorFactory);
     for (Object key : props.keySet()) {
       if (!metaConfig.hasSetter(String.valueOf(key))) {
@@ -173,9 +180,11 @@ public class XMLConfigBuilder extends BaseBuilder {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
         if ("package".equals(child.getName())) {
+          // 处理package节点
           String typeAliasPackage = child.getStringAttribute("name");
           configuration.getTypeAliasRegistry().registerAliases(typeAliasPackage);
         } else {
+          // 处理typeAlias节点
           String alias = child.getStringAttribute("alias");
           String type = child.getStringAttribute("type");
           try {
