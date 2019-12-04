@@ -107,16 +107,23 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private void configurationElement(XNode context) {
     try {
+      // 获取<mapper>节点的namespace属性
       String namespace = context.getStringAttribute("namespace");
       if (namespace == null || namespace.equals("")) {
         throw new BuilderException("Mapper's namespace cannot be empty");
       }
       builderAssistant.setCurrentNamespace(namespace);
+      // 解析<cache-ref>节点
       cacheRefElement(context.evalNode("cache-ref"));
+      // 解析<cache>节点
       cacheElement(context.evalNode("cache"));
+      // 解析<parameterMap>节点
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));
+      // 解析<resultMap>节点
       resultMapElements(context.evalNodes("/mapper/resultMap"));
+      // 解析<sql>节点
       sqlElement(context.evalNodes("/mapper/sql"));
+      // 解析<select><insert><update><delete>节点
       buildStatementFromContext(context.evalNodes("select|insert|update|delete"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing Mapper XML. The XML location is '" + resource + "'. Cause: " + e, e);
@@ -188,11 +195,13 @@ public class XMLMapperBuilder extends BaseBuilder {
 
   private void cacheRefElement(XNode context) {
     if (context != null) {
+      // 将当前Mapper配置文件的namespace与被引用的cache所在的namespace之间的对应关系
       configuration.addCacheRef(builderAssistant.getCurrentNamespace(), context.getStringAttribute("namespace"));
       CacheRefResolver cacheRefResolver = new CacheRefResolver(builderAssistant, context.getStringAttribute("namespace"));
       try {
         cacheRefResolver.resolveCacheRef();
       } catch (IncompleteElementException e) {
+        // 如果出现异常，则添加到Configuration.incompleteCacheRefs
         configuration.addIncompleteCacheRef(cacheRefResolver);
       }
     }

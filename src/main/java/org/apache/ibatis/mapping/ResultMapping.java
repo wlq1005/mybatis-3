@@ -29,13 +29,31 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
  * @author Clinton Begin
  */
 public class ResultMapping {
-
+  /**
+   * mybatis配置对象
+   */
   private Configuration configuration;
+  /**
+   * 实体类对应字段
+   */
   private String property;
+  /**
+   * 数据库对应字段
+   */
   private String column;
+  /**
+   * 对应字段java类型
+   */
   private Class<?> javaType;
+  /**
+   * 对应字段数据库类型
+   */
   private JdbcType jdbcType;
+  /**
+   * 类型处理器
+   */
   private TypeHandler<?> typeHandler;
+
   private String nestedResultMapId;
   private String nestedQueryId;
   private Set<String> notNullColumns;
@@ -44,6 +62,9 @@ public class ResultMapping {
   private List<ResultMapping> composites;
   private String resultSet;
   private String foreignColumn;
+  /**
+   * 是否延迟加载，对应fetchType
+   */
   private boolean lazy;
 
   ResultMapping() {

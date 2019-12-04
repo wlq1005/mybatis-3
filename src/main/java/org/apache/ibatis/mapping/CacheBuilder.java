@@ -38,13 +38,37 @@ import org.apache.ibatis.reflection.SystemMetaObject;
  * @author Clinton Begin
  */
 public class CacheBuilder {
+  /**
+   * cache的唯一标识，默认对应namespace
+   */
   private final String id;
+  /**
+   * cache接口的实现类，默认是PerpetualCache
+   */
   private Class<? extends Cache> implementation;
+  /**
+   * 装饰器，默认只包含LruCache.class
+   */
   private final List<Class<? extends Cache>> decorators;
+  /**
+   * cache大小
+   */
   private Integer size;
+  /**
+   * cache清理周期
+   */
   private Long clearInterval;
+  /**
+   * 是否可读可写
+   */
   private boolean readWrite;
+  /**
+   * 其他配置信息
+   */
   private Properties properties;
+  /**
+   * 是否阻塞
+   */
   private boolean blocking;
 
   public CacheBuilder(String id) {
@@ -90,7 +114,9 @@ public class CacheBuilder {
   }
 
   public Cache build() {
+    // 设置默认实现
     setDefaultImplementations();
+    // 通过反射创建调用实现类的构造方法，初始化对象
     Cache cache = newBaseCacheInstance(implementation, id);
     setCacheProperties(cache);
     // issue #352, do not apply decorators to custom caches

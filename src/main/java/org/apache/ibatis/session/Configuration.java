@@ -951,6 +951,7 @@ public class Configuration {
         if (super.get(shortKey) == null) {
           super.put(shortKey, value);
         } else {
+          // 防止重复添加，用了Ambiguity来解决二义性
           super.put(shortKey, (V) new Ambiguity(shortKey));
         }
       }
@@ -963,6 +964,7 @@ public class Configuration {
       if (value == null) {
         throw new IllegalArgumentException(name + " does not contain value for " + key);
       }
+      // 如果value是Ambiguity类型的，则说明是重复添加的，直接报错
       if (value instanceof Ambiguity) {
         throw new IllegalArgumentException(((Ambiguity) value).getSubject() + " is ambiguous in " + name
             + " (try using the full name including the namespace, or rename one of the entries)");
