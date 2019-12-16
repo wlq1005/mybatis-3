@@ -205,10 +205,15 @@ public class XMLConfigBuilder extends BaseBuilder {
   private void pluginElement(XNode parent) throws Exception {
     if (parent != null) {
       for (XNode child : parent.getChildren()) {
+        // 获取子节点interceptor属性值
         String interceptor = child.getStringAttribute("interceptor");
+        // 如果子节点有设置property节点，则获取property节点的name和value值
         Properties properties = child.getChildrenAsProperties();
+        // 反射初始化interceptor配置的类
         Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).newInstance();
+        // 设置properties属性
         interceptorInstance.setProperties(properties);
+        // 把初始化后的拦截器class添加至interceptorChain
         configuration.addInterceptor(interceptorInstance);
       }
     }
