@@ -224,6 +224,7 @@ public class ResolverUtil<T> {
           addIfMatching(test, child);
         }
       }
+
     } catch (IOException ioe) {
       log.error("Could not read package: " + packageName, ioe);
     }

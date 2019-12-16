@@ -34,6 +34,7 @@ import org.apache.ibatis.session.SqlSession;
 public class MapperRegistry {
 
   private final Configuration config;
+  // 已加载的mapper类映射
   private final Map<Class<?>, MapperProxyFactory<?>> knownMappers = new HashMap<>();
 
   public MapperRegistry(Configuration config) {
@@ -58,10 +59,13 @@ public class MapperRegistry {
   }
 
   public <T> void addMapper(Class<T> type) {
+    // 判断是否接口
     if (type.isInterface()) {
+      // 判断是否已经加载过该mapper
       if (hasMapper(type)) {
         throw new BindingException("Type " + type + " is already known to the MapperRegistry.");
       }
+      // 定义个标记，判断本次是否载入完成
       boolean loadCompleted = false;
       try {
         knownMappers.put(type, new MapperProxyFactory<>(type));
@@ -72,6 +76,7 @@ public class MapperRegistry {
         parser.parse();
         loadCompleted = true;
       } finally {
+        // 载入失败，移除该type
         if (!loadCompleted) {
           knownMappers.remove(type);
         }
@@ -91,8 +96,10 @@ public class MapperRegistry {
    */
   public void addMappers(String packageName, Class<?> superType) {
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<>();
+    // 获取packageName包路径下面的所有继承自superType的类
     resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
     Set<Class<? extends Class<?>>> mapperSet = resolverUtil.getClasses();
+    // 添加至knownMappers
     for (Class<?> mapperClass : mapperSet) {
       addMapper(mapperClass);
     }

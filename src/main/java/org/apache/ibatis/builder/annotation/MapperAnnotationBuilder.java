@@ -105,6 +105,7 @@ public class MapperAnnotationBuilder {
   private final Class<?> type;
 
   static {
+    // 默认的注解
     SQL_ANNOTATION_TYPES.add(Select.class);
     SQL_ANNOTATION_TYPES.add(Insert.class);
     SQL_ANNOTATION_TYPES.add(Update.class);
