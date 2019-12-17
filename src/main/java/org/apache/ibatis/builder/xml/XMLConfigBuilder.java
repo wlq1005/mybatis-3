@@ -327,7 +327,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       }
       for (XNode child : context.getChildren()) {
         String id = child.getStringAttribute("id");
-        // 找到id与default对应的environment配置
+        // 找到id与default对应的environment配置，必须要设置default属性
         if (isSpecifiedEnvironment(id)) {
           // 获取事务
           TransactionFactory txFactory = transactionManagerElement(child.evalNode("transactionManager"));
@@ -337,6 +337,7 @@ public class XMLConfigBuilder extends BaseBuilder {
           Environment.Builder environmentBuilder = new Environment.Builder(id)
               .transactionFactory(txFactory)
               .dataSource(dataSource);
+          // 这边也是个建造者模式,将数据都添加至Configuration中的environment对象中
           configuration.setEnvironment(environmentBuilder.build());
         }
       }
