@@ -27,6 +27,7 @@ public class InterceptorChain {
   private final List<Interceptor> interceptors = new ArrayList<>();
 
   public Object pluginAll(Object target) {
+    // 遍历拦截器列表，对传入的对象添加
     for (Interceptor interceptor : interceptors) {
       target = interceptor.plugin(target);
     }
